@@ -10,9 +10,9 @@ You can see an example of how to use the recipe below::
     ... [buildout]
     ... parts = activate
     ...
-    ...[activate]
-    ...recipe = evg.recipe.activate
-    ..."""
+    ... [activate]
+    ... recipe = evg.recipe.activate
+    ... """
     >>> touch('buildout.cfg', data=data)
     >>> sh('bin/buildout -vvvvvv install activate')
 
@@ -46,3 +46,9 @@ deactivate
   The name of the function to deactivate environment. It defaults to
   ``deactivate``.
 
+name
+  The name of the environment. It will use buildout directory name by default.
+
+platform
+  The name of paltform to generate scripts. It will be detected by default.
+  Possible values are: ``posix``, ``win32``, ``cygwin`` and ``jython``.

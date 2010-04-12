@@ -1,7 +1,16 @@
+0.3 (2010-04-13)
+----------------
+
+* Added the ``name`` option to set prompt name.
+
+* Added the ``platform`` option to select which kind of scripts will be generated.
+
+* Added Windows support.
+
 0.2 (2010-04-12)
 ----------------
 
-* Add CHANGES.txt to MANIFEST.in
+* Add CHANGES.txt to MANIFEST.in.
 
 0.1 (2010-04-12)
 ----------------

@@ -26,7 +26,7 @@ long_description="\n\n".join([read("evg", "recipe", "activate", "README.txt"),
 			      read("CHANGES.txt")])
 
 setup(name="evg.recipe.activate",
-      version="0.2",
+      version="0.3",
       description="This recipe generates activation script for zc.buildout environment.",
       author="Evgeny V. Generalov",
       author_email="e.generalov@gmail.com",
@@ -42,6 +42,10 @@ setup(name="evg.recipe.activate",
       packages=find_packages(exclude=["ez_setup"]),
       namespace_packages=["evg", "evg.recipe"],
       include_package_data=True,
+      data_files = [
+	('', ['buildout.cfg', 'CHANGES.txt']),
+	('evg/recipe/activate', ['evg/recipe/activate/README.txt']),
+      ],
       install_requires=[
         "setuptools",
         "zc.buildout",

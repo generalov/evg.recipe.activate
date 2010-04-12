@@ -22,10 +22,85 @@ __all__ = ("Recipe", "uninstall")
 
 
 import os
+import sys
 import re
 
 
-POSIX_ACTIVATE_SCRIPT_TEMPLATE = """
+class Recipe(object):
+    """zc.buildout recipe"""
+
+    def __init__(self, buildout, name, options):
+        self.buildout, self.name, self.options = buildout, name, options
+        options.setdefault("activate", ACTIVATE)
+        options.setdefault("deactivate", DEACTIVATE)
+        options.setdefault("directory", buildout["buildout"]["directory"])
+        options.setdefault("bin-directory", buildout["buildout"]["bin-directory"])
+	name = os.path.basename(os.path.abspath(options["directory"]))
+	if name == '__':
+	    # special case for Aspen magic directories
+	    # see http://www.zetadev.com/software/aspen/
+	    name = os.path.basename(os.path.abspath(os.path.dirname(options["directory"])))
+        options.setdefault("name", name)
+        options.setdefault("platform", get_platform())
+
+    def install(self):
+        """Install the ``activate`` script"""
+        activate = self.options['activate']
+        deactivate = self.options['deactivate']
+        platform = self.options['platform']
+        bin_dir = self.options['bin-directory']
+        files = {}
+        if WIN32 in platform or JYTHON in platform:
+            files.update({'%s.bat' % activate : ACTIVATE_BAT,
+                          '%s.bat' % deactivate : DEACTIVATE_BAT})
+        if CYGWIN in platform or POSIX in platform:
+            files.update({activate: ACTIVATE_SH})
+        assert files, "Can't to detect platform"
+        script_paths = []
+        for name, content in files.items():
+            dest = os.path.join(bin_dir, name)
+            content = self.render(content)
+            writefile(dest, content)
+            script_paths.append(dest)
+        return script_paths
+
+    def update(self):
+        pass
+
+    def render(self, source):
+        template=re.sub(r"\$\{([^:]+?)\}", r"${%s:\1}" % self.name, source)
+        return self.options._sub(template, [])
+
+
+def uninstall(name, options):
+    pass
+
+CYGWIN = 'cygwin'
+JYTHON = 'jython'
+POSIX = 'posix'
+WIN32 = 'win32'
+def get_platform():
+    platform = set()
+    if sys.platform.startswith('java'):
+        platform.add(JYTHON)
+    if sys.platform == 'win32' and os._name == 'nt':
+        platform.add(WIN32)
+    if os.environ.get('OS') == 'Windows_NT' and os.environ.get('OSTYPE') == 'cygwin':
+        platform.add(CYGWIN)
+    if not platform:
+        platform.add(POSIX)
+    return '+'.join(sorted(platform))
+
+def writefile(dest, content):
+    f = open(dest, "wt")
+    f.write(content)
+    f.close()
+
+ACTIVATE = 'activate'
+
+DEACTIVATE = 'deactivate'
+
+ACTIVATE_SH = r"""
 # This file must be used with "source bin/${activate}" *from bash*
 # you cannot run it directly
 
@@ -49,30 +124,28 @@ ${deactivate} () {
         unset _OLD_BUILDOUT_PS1
     fi
 
+    unset BUILDOUT_ENV
     if [ ! "$1" = "nondestructive" ] ; then
     # Self destruct!
-        unset -f "${deactivate}"
+        unset -f ${deactivate}
     fi
 }
 
 # unset irrelavent variables
 ${deactivate} nondestructive
 
-BUILDOUT_ENV="${buildout:directory}"
+BUILDOUT_ENV="${directory}"
+export BUILDOUT_ENV
 
 _OLD_BUILDOUT_PATH="$PATH"
-PATH="$BUILDOUT_ENV/bin:$PATH"
+PATH="${bin-directory}:$PATH"
 export PATH
 
-_OLD_BUILDOUT_PS1="$PS1"
-if [ "`basename \"$BUILDOUT_ENV\"`" = "__" ] ; then
-    # special case for Aspen magic directories
-    # see http://www.zetadev.com/software/aspen/
-    PS1="[`basename \`dirname \"$BUILDOUT_ENV\"\``] $PS1"
-else
-    PS1="(`basename \"$BUILDOUT_ENV\"`)$PS1"
+if [ -z "$BUILDOUT_ENV_DISABLE_PROMPT" ] ; then
+    _OLD_BUILDOUT_PS1="$PS1"
+    PS1="(${name})$PS1"
+    export PS1
 fi
-export PS1
 
 # This should detect bash and zsh, which have a hash command that must
 # be called to get it to forget past commands.  Without forgetting
@@ -80,52 +153,45 @@ export PS1
 if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
     hash -r
 fi
-"""
+""".lstrip()
 
+ACTIVATE_BAT = r"""
+@echo off
+set BUILDOUT_ENV=${buildout:directory}
 
-class PosixDefaults(object):
-    """Settings for POSIX systems"""
+if not defined PROMPT (
+    set PROMPT=$P$G
+)
 
-    activate_script_name = "activate"
-    deactivate_script_name = "deactivate"
-    activate_script_template = POSIX_ACTIVATE_SCRIPT_TEMPLATE.lstrip()
+if defined _OLD_BUILDOUT_PROMPT (
+    set PROMPT=%_OLD_BUILDOUT_PROMPT%
+)
 
+set _OLD_BUILDOUT_PROMPT=%PROMPT%
+set PROMPT=(${name}) %PROMPT%
 
-class Recipe(object):
-    """zc.buildout recipe"""
+if defined _OLD_BUILDOUT_PATH set PATH=%_OLD_BUILDOUT_PATH%; goto SKIPPATH
 
-    def __init__(self, buildout, name, options):
-        self.buildout, self.name, self.options = buildout, name, options
+set _OLD_BUILDOUT_PATH=%PATH%
 
-        defaults = PosixDefaults
-        options.setdefault("activate", defaults.activate_script_name)
-        options.setdefault("deactivate", defaults.deactivate_script_name)
+:SKIPPATH
+set PATH=${buildout:bin-directory};%PATH%
 
-        self.bin_directory = buildout["buildout"]["bin-directory"]
-        self.activate_script_path = os.path.join(self.bin_directory,
-                                                 options["activate"])
-        self.activate_script_template = defaults.activate_script_template
+:END
+""".lstrip().replace('\n', '\r\n')
 
-    def install(self):
-        """Install the ``activate`` script"""
-        script_paths = []
-        script_paths.extend(self._create_activate_script())
-        return script_paths
+DEACTIVATE_BAT = r"""
+@echo off
 
-    def update(self):
-        pass
+if defined _OLD_BUILDOUT_PROMPT (
+    set PROMPT=%_OLD_BUILDOUT_PROMPT%
+)
+set _OLD_BUILDOUT_PROMPT=
 
-    def _create_activate_script(self):
-        result = self._render(self.activate_script_template)
-        output = open(self.activate_script_path, "wt")
-        output.write(result)
-        output.close()
-        return [self.activate_script_path, ]
+if defined _OLD_BUILDOUT_PATH set PATH=%_OLD_BUILDOUT_PATH%
 
-    def _render(self, source):
-        template=re.sub(r"\$\{([^:]+?)\}", r"${%s:\1}" % self.name, source)
-        return self.options._sub(template, [])
+set _OLD_BUILDOUT_PATH=
 
+:END
 
-def uninstall(name, options):
-    pass
+""".lstrip().replace('\n', '\r\n')
