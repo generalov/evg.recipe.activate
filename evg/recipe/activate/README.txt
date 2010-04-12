@@ -1,22 +1,25 @@
-.. filetype:rst
+evg.recipe.activate
+===================
 
-Description
-===========
-
-This buildout recipe can be used to create an activation script for zc.buildout
+This recipe can be used to create an activation script for zc.buildout
 environment.
 
 You can see an example of how to use the recipe below::
 
-  [buildout]
-  parts = activate
+    >>> data = """
+    ... [buildout]
+    ... parts = activate
+    ...
+    ...[activate]
+    ...recipe = evg.recipe.activate
+    ..."""
+    >>> touch('buildout.cfg', data=data)
+    >>> sh('bin/buildout -vvvvvv install activate')
 
-  [activate]
-  recipe = evg.recipe.activate
 
 
-Run buildout. Then on Posix systems you can do::
-    
+Run buildout. Then on POSIX systems you can do::
+
     $ source bin/activate
 
 This will change your ``$PATH`` to point to the virtualenv ``bin/`` directory.
@@ -27,8 +30,8 @@ changes::
     (buildout) $ deactivate
 
 The ``activate`` script will also modify your shell prompt to indicate which
-environment is currently active. 
-    
+environment is currently active.
+
 
 Supported options
 =================

@@ -1,0 +1,4 @@
+0.1 (2010-04-12)
+----------------
+
+* Generate activation script for zc.buildout environment on POSIX systems.

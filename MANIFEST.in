@@ -1,0 +1,2 @@
+recursive-include evg *.txt
+include buildout.cfg
