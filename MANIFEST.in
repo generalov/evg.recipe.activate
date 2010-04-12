@@ -1,2 +1,3 @@
 recursive-include evg *.txt
 include buildout.cfg
+include CHANGES.txt

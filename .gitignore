@@ -1,6 +1,7 @@
 .installed.cfg
 bin
 bootstrap.py
+build
 develop-eggs
 dist
 parts
