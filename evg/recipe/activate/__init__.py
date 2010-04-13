@@ -39,27 +39,27 @@ class Recipe(object):
 	if name == '__':
 	    # special case for Aspen magic directories
 	    # see http://www.zetadev.com/software/aspen/
-	    name = os.path.basename(os.path.abspath(os.path.dirname(options["directory"])))
+	    name = os.path.basename(os.path.dirname(os.path.abspath(options["directory"])))
         options.setdefault("name", name)
         options.setdefault("platform", get_platform())
 
     def install(self):
         """Install the ``activate`` script"""
-        activate = self.options['activate']
-        deactivate = self.options['deactivate']
-        platform = self.options['platform']
-        bin_dir = self.options['bin-directory']
+        activate = self.options["activate"]
+        deactivate = self.options["deactivate"]
+        platform = self.options["platform"]
+        bin_dir = self.options["bin-directory"]
         files = {}
         if WIN32 in platform or JYTHON in platform:
-            files.update({'%s.bat' % activate : ACTIVATE_BAT,
-                          '%s.bat' % deactivate : DEACTIVATE_BAT})
+            files.update({"%s.bat" % activate : ACTIVATE_BAT,
+                          "%s.bat" % deactivate : DEACTIVATE_BAT})
         if CYGWIN in platform or POSIX in platform:
             files.update({activate: ACTIVATE_SH})
         assert files, "Can't to detect platform"
         script_paths = []
-        for name, content in files.items():
+        for name, template in files.items():
             dest = os.path.join(bin_dir, name)
-            content = self.render(content)
+            content = self.render(template)
             writefile(dest, content)
             script_paths.append(dest)
         return script_paths
@@ -67,38 +67,38 @@ class Recipe(object):
     def update(self):
         pass
 
-    def render(self, source):
-        template=re.sub(r"\$\{([^:]+?)\}", r"${%s:\1}" % self.name, source)
+    def render(self, template):
+        template=re.sub(r"\$\{([^:]+?)\}", r"${%s:\1}" % self.name, template)
         return self.options._sub(template, [])
 
 
 def uninstall(name, options):
     pass
 
-CYGWIN = 'cygwin'
-JYTHON = 'jython'
-POSIX = 'posix'
-WIN32 = 'win32'
+CYGWIN = "cygwin"
+JYTHON = "jython"
+POSIX = "posix"
+WIN32 = "win32"
 def get_platform():
     platform = set()
-    if sys.platform.startswith('java'):
+    if sys.platform.startswith("java"):
         platform.add(JYTHON)
-    if sys.platform == 'win32' and os._name == 'nt':
+    if sys.platform == "win32" and os._name == "nt":
         platform.add(WIN32)
-    if os.environ.get('OS') == 'Windows_NT' and os.environ.get('OSTYPE') == 'cygwin':
+    if os.environ.get("OS") == "Windows_NT" and os.environ.get("OSTYPE") == "cygwin":
         platform.add(CYGWIN)
     if not platform:
         platform.add(POSIX)
-    return '+'.join(sorted(platform))
+    return "+".join(sorted(platform))
 
 def writefile(dest, content):
     f = open(dest, "wt")
     f.write(content)
     f.close()
 
-ACTIVATE = 'activate'
+ACTIVATE = "activate"
 
-DEACTIVATE = 'deactivate'
+DEACTIVATE = "deactivate"
 
 ACTIVATE_SH = r"""
 # This file must be used with "source bin/${activate}" *from bash*
@@ -157,7 +157,7 @@ fi
 
 ACTIVATE_BAT = r"""
 @echo off
-set BUILDOUT_ENV=${buildout:directory}
+set BUILDOUT_ENV=${directory}
 
 if not defined PROMPT (
     set PROMPT=$P$G
@@ -175,10 +175,10 @@ if defined _OLD_BUILDOUT_PATH set PATH=%_OLD_BUILDOUT_PATH%; goto SKIPPATH
 set _OLD_BUILDOUT_PATH=%PATH%
 
 :SKIPPATH
-set PATH=${buildout:bin-directory};%PATH%
+set PATH=${bin-directory};%PATH%
 
 :END
-""".lstrip().replace('\n', '\r\n')
+""".lstrip().replace("\n", "\r\n")
 
 DEACTIVATE_BAT = r"""
 @echo off
@@ -194,4 +194,4 @@ set _OLD_BUILDOUT_PATH=
 
 :END
 
-""".lstrip().replace('\n', '\r\n')
+""".lstrip().replace("\n", "\r\n")
