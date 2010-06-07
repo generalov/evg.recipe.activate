@@ -34,23 +34,27 @@ class Recipe(object):
         options.setdefault("activate", ACTIVATE)
         options.setdefault("deactivate", DEACTIVATE)
         options.setdefault("directory", buildout["buildout"]["directory"])
-        options.setdefault("bin-directory", buildout["buildout"]["bin-directory"])
-	name = os.path.basename(os.path.abspath(options["directory"]))
-	if name == '__':
-	    # special case for Aspen magic directories
-	    # see http://www.zetadev.com/software/aspen/
-	    name = os.path.basename(os.path.dirname(os.path.abspath(options["directory"])))
-        options.setdefault("name", name)
+        options.setdefault("bin-directory",
+                           buildout["buildout"]["bin-directory"])
+        environment_name = os.path.basename(
+                os.path.abspath(options.get("directory")))
+        if environment_name == '__':
+            # special case for Aspen magic directories
+            # see http://www.zetadev.com/software/aspen/
+            environment_name = os.path.basename(
+                    os.path.dirname(
+                        os.path.abspath(options.get("directory"))))
+        options.setdefault("name", environment_name)
         options.setdefault("platform", get_platform())
 
     def install(self):
         """Install the ``activate`` script"""
-        activate = self.options["activate"]
-        deactivate = self.options["deactivate"]
-        platform = self.options["platform"]
-        bin_dir = self.options["bin-directory"]
+        activate = self.options.get("activate")
+        deactivate = self.options.get("deactivate")
+        platform = self.options.get("platform")
+        bin_dir = self.options.get("bin-directory")
         files = {}
-        if WIN32 in platform or JYTHON in platform:
+        if WIN32 in platform:
             files.update({"%s.bat" % activate : ACTIVATE_BAT,
                           "%s.bat" % deactivate : DEACTIVATE_BAT})
         if CYGWIN in platform or POSIX in platform:

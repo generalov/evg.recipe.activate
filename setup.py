@@ -22,8 +22,8 @@ from setuptools import setup, find_packages
 def read(*path):
     return open(os.path.join(os.path.dirname(__file__), *path)).read()
 
-long_description="\n\n".join([read("evg", "recipe", "activate", "README.txt"),
-			      read("CHANGES.txt")])
+long_description="\n\n".join([read("evg", "recipe", "activate", "README.rst"),
+                  read("CHANGES.txt")])
 
 setup(name="evg.recipe.activate",
       version="0.3",
@@ -35,7 +35,7 @@ setup(name="evg.recipe.activate",
       classifiers=[
         "Framework :: Buildout",
         "Topic :: Software Development :: Build Tools",
-	"License :: OSI Approved :: Zope Public License",
+        "License :: OSI Approved :: Zope Public License",
         "Development Status :: 5 - Production/Stable",
       ],
       keywords="buildout",
@@ -43,8 +43,8 @@ setup(name="evg.recipe.activate",
       namespace_packages=["evg", "evg.recipe"],
       include_package_data=True,
       data_files = [
-	('', ['buildout.cfg', 'CHANGES.txt']),
-	('evg/recipe/activate', ['evg/recipe/activate/README.txt']),
+        ('', ['buildout.cfg', 'CHANGES.txt']),
+        ('evg/recipe/activate', ['evg/recipe/activate/README.rst']),
       ],
       install_requires=[
         "setuptools",
