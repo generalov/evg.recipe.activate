@@ -80,17 +80,19 @@ def uninstall(name, options):
     pass
 
 CYGWIN = "cygwin"
-JYTHON = "jython"
 POSIX = "posix"
 WIN32 = "win32"
 def get_platform():
     platform = set()
-    if sys.platform.startswith("java"):
-        platform.add(JYTHON)
-    if sys.platform == "win32" and os._name == "nt":
+    if sys.platform == "win32":
         platform.add(WIN32)
     if os.environ.get("OS") == "Windows_NT" and os.environ.get("OSTYPE") == "cygwin":
         platform.add(CYGWIN)
+    if sys.platform.startswith("java"):
+        if os._name == 'nt':
+            platform.add(WIN32)
+        elif not CYGWIN in platform:
+            platform.add(POSIX)
     if not platform:
         platform.add(POSIX)
     return "+".join(sorted(platform))
