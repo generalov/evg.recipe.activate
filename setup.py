@@ -26,7 +26,7 @@ long_description="\n\n".join([read("evg", "recipe", "activate", "README.rst"),
                   read("CHANGES.txt")])
 
 setup(name="evg.recipe.activate",
-      version="0.3",
+      version="0.4",
       description="This recipe generates activation script for zc.buildout environment.",
       author="Evgeny V. Generalov",
       author_email="e.generalov@gmail.com",
