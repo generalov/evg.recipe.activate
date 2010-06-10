@@ -41,11 +41,6 @@ setup(name="evg.recipe.activate",
       keywords="buildout",
       packages=find_packages(exclude=["ez_setup"]),
       namespace_packages=["evg", "evg.recipe"],
-      include_package_data=True,
-      data_files = [
-        ('', ['buildout.cfg', 'CHANGES.txt']),
-        ('evg/recipe/activate', ['evg/recipe/activate/README.rst']),
-      ],
       install_requires=[
         "setuptools",
         "zc.buildout",
@@ -59,5 +54,5 @@ setup(name="evg.recipe.activate",
         default = evg.recipe.activate:uninstall
       """,
       long_description=long_description,
-      zip_safe=False,
+      zip_safe=True,
 )

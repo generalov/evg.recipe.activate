@@ -1,0 +1,4 @@
+include CHANGES.txt
+include README.rst
+include buildout.cfg
+include evg/recipe/activate/README.rst
